@@ -1,30 +1,57 @@
-import { useState } from 'react';
-import { Pet } from '../../@types/Pet';
+import { useState, useEffect } from "react";
+import { Pet } from "../../@types/pet";
+import { ApiService } from "../../services/ApiService";
+import { AxiosError } from "axios";
 
-
-export function useIndex(){
-    const [listaPets, setListaPets] = useState(
-        [
-          {
-            id: 1,
-            nome: 'Bidu',
-            historia: 'aoskdasodksaodkasokdoasodkoaskd',
-            foto: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSFagTiTpNY1gk2vXKKj6ZKPbPm8rJuHthJRw&usqp=CAU'
-          },
-          {
-            id: 2,
-            nome: 'Scooby',
-            historia: 'É um animal muito dócil.',
-            foto: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSjx95LKp11nXxOq-nFnUkuvVtUDxfnDnGdLQ&usqp=CAU'
-          },
-        ]
-    ),
+export function useIndex() {
+    const [listaPets, setListaPets] = useState<Pet[]>([]),
         [petSelecionado, setPetSelecionado] = useState<Pet | null>(null),
-        [email, setEmail] = useState(''),
-        [valor, setValor] = useState(''),
-        [mensagem, setMensagem] = useState('teste');
+        [email, setEmail] = useState(""),
+        [valor, setValor] = useState(""),
+        [mensagem, setMensagem] = useState("");
 
-    function adotar(){}
+    useEffect(() => {
+        ApiService.get("/pets").then((resposta) => {
+            setListaPets(resposta.data);
+        });
+    }, []);
+
+    useEffect(() => {
+        if (petSelecionado === null) {
+            limparFormulario();
+        }
+    }, [petSelecionado]);
+
+    function adotar() {
+        if (petSelecionado !== null) {
+            if (validarDadosAdocao()) {
+                ApiService.post("/adocoes", {
+                    pet_id: petSelecionado.id,
+                    email,
+                    valor,
+                })
+                    .then(() => {
+                        setPetSelecionado(null);
+                        setMensagem("Pet adotado com sucesso!");
+                        // limparFormulario();
+                    })
+                    .catch((error: AxiosError) => {
+                        setMensagem(error.response?.data.message);
+                    });
+            } else {
+                setMensagem("Preencha todos os dados corretamente!");
+            }
+        }
+    }
+
+    function validarDadosAdocao() {
+        return email.length > 0 && valor.length > 0;
+    }
+
+    function limparFormulario() {
+        setEmail("");
+        setValor("");
+    }
 
     return {
         listaPets,
@@ -36,6 +63,6 @@ export function useIndex(){
         setValor,
         mensagem,
         setMensagem,
-        adotar
+        adotar,
     };
 }

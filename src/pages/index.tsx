@@ -24,7 +24,7 @@ const Home: NextPage = () => {
         titulo="" 
         subtitulo={
           <span>
-            Com um pegueno valor mensal, você <br/>
+            Com um pequeno valor mensal, você <br/>
             pode <strong>adotar um pet virtualmente</strong>
           </span>
         }/>
